@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.npm-cache/
+
+# Build outputs
+dist/
+build/
+
+# Environment files (JANGAN diupload - berisi password/secret!)
+.env
+.env.local
+.env.production
+backend/.env
+
+# Database file (data lokal, jangan diupload)
+backend/pos_data.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# TypeScript compiled
+*.js.map

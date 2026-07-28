@@ -1,0 +1,559 @@
+{
+  "branches": [
+    {
+      "id": "b1000000-0000-0000-0000-000000000001",
+      "name": "Toko Cabang A - Senayan",
+      "address": "Jl. Jenderal Sudirman No. 1, Jakarta",
+      "phone": "021-5550001"
+    },
+    {
+      "id": "b1000000-0000-0000-0000-000000000002",
+      "name": "Toko Cabang B - Kemang",
+      "address": "Jl. Kemang Raya No. 12, Jakarta",
+      "phone": "021-5550002"
+    },
+    {
+      "id": "b1000000-0000-0000-0000-000000000003",
+      "name": "Toko Cabang C - Kelapa Gading",
+      "address": "Jl. Boulevard Raya No. 45, Jakarta",
+      "phone": "021-5550003"
+    }
+  ],
+  "users": [
+    {
+      "id": "u1000000-0000-0000-0000-000000000001",
+      "username": "owner_admin",
+      "password_hash": "$2a$10$12k9yFx/dQnxZxOF..JaRuZt.Y3gr4gAHa1IBmx8CAIE591U4ePFy",
+      "pin_hash": "$2a$10$MsTBkZfHKU.VYxybAVHu4uSVt5N0UFPUD2FpK4wse5gMZoYw4ovm.",
+      "role": "MASTER_ADMIN",
+      "branch_id": null,
+      "is_active": true
+    },
+    {
+      "id": "u1000000-0000-0000-0000-000000000002",
+      "username": "kasir_senayan",
+      "password_hash": "$2a$10$12k9yFx/dQnxZxOF..JaRuZt.Y3gr4gAHa1IBmx8CAIE591U4ePFy",
+      "pin_hash": "$2a$10$MsTBkZfHKU.VYxybAVHu4uSVt5N0UFPUD2FpK4wse5gMZoYw4ovm.",
+      "role": "CASHIER",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "is_active": true
+    },
+    {
+      "id": "u1000000-0000-0000-0000-000000000003",
+      "username": "kasir_kemang",
+      "password_hash": "$2a$10$12k9yFx/dQnxZxOF..JaRuZt.Y3gr4gAHa1IBmx8CAIE591U4ePFy",
+      "pin_hash": "$2a$10$MsTBkZfHKU.VYxybAVHu4uSVt5N0UFPUD2FpK4wse5gMZoYw4ovm.",
+      "role": "CASHIER",
+      "branch_id": "b1000000-0000-0000-0000-000000000002",
+      "is_active": true
+    },
+    {
+      "id": "u1000000-0000-0000-0000-000000000004",
+      "username": "kasir_gading",
+      "password_hash": "$2a$10$12k9yFx/dQnxZxOF..JaRuZt.Y3gr4gAHa1IBmx8CAIE591U4ePFy",
+      "pin_hash": "$2a$10$MsTBkZfHKU.VYxybAVHu4uSVt5N0UFPUD2FpK4wse5gMZoYw4ovm.",
+      "role": "CASHIER",
+      "branch_id": "b1000000-0000-0000-0000-000000000003",
+      "is_active": true
+    },
+    {
+      "id": "b762905f-28d3-4eb7-b496-6c5280b72e66",
+      "username": "kasir_sudirman",
+      "password_hash": "$2a$10$53/A6KfgCKUk6UbXl1MrRulSLV2.XSFC6tghmR9KWxCP1/BuPPLxC",
+      "pin_hash": "$2a$10$53/A6KfgCKUk6UbXl1MrRuCGakfyRCiC3Sl2cHrEhmTPh.JgsUyY2",
+      "role": "CASHIER",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "is_active": true,
+      "created_at": "2026-07-28T04:23:29.329Z",
+      "updated_at": "2026-07-28T04:23:29.329Z"
+    },
+    {
+      "id": "a32f8cd9-5d84-4d4e-9850-2bb82676365f",
+      "username": "kasir_sudirman",
+      "password_hash": "$2a$10$/lAO8lsXGUuCo1rvnRpGv.eyUv0R/fLNk3ueO/Mu/dlv/fmBKPoFK",
+      "pin_hash": "$2a$10$/lAO8lsXGUuCo1rvnRpGv.VXYKhv8oQ.4iBOAxIGM622DKErdGXKa",
+      "role": "CASHIER",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "is_active": true,
+      "created_at": "2026-07-28T04:24:33.261Z",
+      "updated_at": "2026-07-28T04:24:33.261Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "p1000000-0000-0000-0000-000000000001",
+      "barcode": "8999999123401",
+      "name": "Kopi Susu Gula Aren 250ml",
+      "category": "Minuman",
+      "selling_price": 18000,
+      "cost_price": 10000,
+      "max_discount": 10,
+      "updated_at": "2026-07-27T06:14:13.854Z"
+    },
+    {
+      "id": "p1000000-0000-0000-0000-000000000002",
+      "barcode": "8999999123402",
+      "name": "Roti Bakar Coklat Keju",
+      "category": "Makanan",
+      "selling_price": 22000,
+      "cost_price": 12000,
+      "max_discount": 10,
+      "updated_at": "2026-07-27T06:14:13.857Z"
+    },
+    {
+      "id": "p1000000-0000-0000-0000-000000000003",
+      "barcode": "8999999123403",
+      "name": "Rokok Sampoerna Mild 16",
+      "category": "Tembakau",
+      "selling_price": 32000,
+      "cost_price": 28000,
+      "max_discount": 5,
+      "updated_at": "2026-07-27T06:14:13.857Z"
+    },
+    {
+      "id": "p1000000-0000-0000-0000-000000000004",
+      "barcode": "8999999123404",
+      "name": "Susu Formula SGM Eksplor 1kg",
+      "category": "Kebutuhan Anak",
+      "selling_price": 95000,
+      "cost_price": 80000,
+      "max_discount": 8,
+      "updated_at": "2026-07-27T06:14:13.857Z"
+    }
+  ],
+  "inventories": [
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000001",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "stock": 159
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "stock": 22
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000003",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "stock": 96
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000004",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "stock": 19
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000001",
+      "branch_id": "b1000000-0000-0000-0000-000000000002",
+      "stock": 40
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000002",
+      "stock": 25
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000003",
+      "branch_id": "b1000000-0000-0000-0000-000000000002",
+      "stock": 80
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000004",
+      "branch_id": "b1000000-0000-0000-0000-000000000002",
+      "stock": 15
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000001",
+      "branch_id": "b1000000-0000-0000-0000-000000000003",
+      "stock": 60
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000003",
+      "stock": 35
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000003",
+      "branch_id": "b1000000-0000-0000-0000-000000000003",
+      "stock": 120
+    },
+    {
+      "product_id": "p1000000-0000-0000-0000-000000000004",
+      "branch_id": "b1000000-0000-0000-0000-000000000003",
+      "stock": 25
+    }
+  ],
+  "sales": [
+    {
+      "id": "TX-b100-DEV-KJS9F7YOF-20260728042016-1313",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "member_id": null,
+      "subtotal": 22000,
+      "total_discount": 0,
+      "grand_total": 22000,
+      "payment_method": "QRIS",
+      "cash_received": 22000,
+      "cash_change": 0,
+      "created_at": "2026-07-28T04:20:16.325Z"
+    },
+    {
+      "id": "TX-b100-DEV-KJS9F7YOF-20260728042102-3523",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "member_id": null,
+      "subtotal": 319000,
+      "total_discount": 0,
+      "grand_total": 319000,
+      "payment_method": "QRIS",
+      "cash_received": 319000,
+      "cash_change": 0,
+      "created_at": "2026-07-28T04:21:02.978Z"
+    },
+    {
+      "id": "TX-b100-DEV-KJS9F7YOF-20260728044734-6260",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "member_id": null,
+      "subtotal": 22000,
+      "total_discount": 0,
+      "grand_total": 22000,
+      "payment_method": "CASH",
+      "cash_received": 100000,
+      "cash_change": 78000,
+      "created_at": "2026-07-28T04:47:34.085Z"
+    },
+    {
+      "id": "TX-b100-DEV-KJS9F7YOF-20260728044756-3556",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "member_id": null,
+      "subtotal": 54000,
+      "total_discount": 0,
+      "grand_total": 54000,
+      "payment_method": "CASH",
+      "cash_received": 100000,
+      "cash_change": 46000,
+      "created_at": "2026-07-28T04:47:56.869Z"
+    }
+  ],
+  "sale_items": [
+    {
+      "id": "64d67b56-66ba-4dd1-b18d-23e47b6c3ac5",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728042016-1313",
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "quantity": 1,
+      "price_at_sale": 22000,
+      "cost_at_sale": 12000,
+      "discount_percent": 0
+    },
+    {
+      "id": "8c99f7db-cc4f-4023-9e4a-f50f446c544c",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728042102-3523",
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "quantity": 5,
+      "price_at_sale": 22000,
+      "cost_at_sale": 12000,
+      "discount_percent": 0
+    },
+    {
+      "id": "ea7605f1-4f58-4093-90be-0609af11736a",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728042102-3523",
+      "product_id": "p1000000-0000-0000-0000-000000000003",
+      "quantity": 3,
+      "price_at_sale": 32000,
+      "cost_at_sale": 28000,
+      "discount_percent": 0
+    },
+    {
+      "id": "a5b340e3-bca5-4fa1-8328-b00a0f4f64d3",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728042102-3523",
+      "product_id": "p1000000-0000-0000-0000-000000000001",
+      "quantity": 1,
+      "price_at_sale": 18000,
+      "cost_at_sale": 10000,
+      "discount_percent": 0
+    },
+    {
+      "id": "da244651-38c8-42c9-a8fa-13a370e7fbbd",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728042102-3523",
+      "product_id": "p1000000-0000-0000-0000-000000000004",
+      "quantity": 1,
+      "price_at_sale": 95000,
+      "cost_at_sale": 80000,
+      "discount_percent": 0
+    },
+    {
+      "id": "39a2f3d2-dd25-4335-b53e-fb43e3c92554",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728044734-6260",
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "quantity": 1,
+      "price_at_sale": 22000,
+      "cost_at_sale": 12000,
+      "discount_percent": 0
+    },
+    {
+      "id": "3add8b55-1876-45e7-9900-d33da5241927",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728044756-3556",
+      "product_id": "p1000000-0000-0000-0000-000000000003",
+      "quantity": 1,
+      "price_at_sale": 32000,
+      "cost_at_sale": 28000,
+      "discount_percent": 0
+    },
+    {
+      "id": "62dfc776-3046-44cf-a78b-951d84753da5",
+      "sale_id": "TX-b100-DEV-KJS9F7YOF-20260728044756-3556",
+      "product_id": "p1000000-0000-0000-0000-000000000002",
+      "quantity": 1,
+      "price_at_sale": 22000,
+      "cost_at_sale": 12000,
+      "discount_percent": 0
+    }
+  ],
+  "shift_logs": [
+    {
+      "id": "0cc97945-446e-4266-b2ec-aaf2c9acc8d6",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "opening_time": "2026-07-27T06:38:25.934Z",
+      "closing_time": null,
+      "opening_cash": 200000,
+      "expected_cash": null,
+      "actual_cash": null,
+      "variance": null,
+      "status": "OPEN",
+      "created_at": "2026-07-27T06:38:25.934Z"
+    },
+    {
+      "id": "7d579590-04e0-4466-8967-2ca76b340acd",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "opening_time": "2026-07-28T04:10:09.797Z",
+      "closing_time": null,
+      "opening_cash": 123456,
+      "expected_cash": null,
+      "actual_cash": null,
+      "variance": null,
+      "status": "OPEN",
+      "created_at": "2026-07-28T04:10:09.797Z"
+    }
+  ],
+  "void_audit_trail": [],
+  "discount_audit_trail": [],
+  "stock_claims": [],
+  "stock_transfers": [],
+  "active_sessions": [],
+  "audit_logs": [
+    {
+      "id": "8af76684-8505-421c-b4f0-ca79ec6af22b",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-27T06:36:56.489Z"
+    },
+    {
+      "id": "9154af1e-2fb7-42bd-a082-c756bc046df6",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-27T06:37:57.070Z"
+    },
+    {
+      "id": "c84bc685-4f7d-4ef6-9367-5669867d17fa",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-27T06:38:14.107Z"
+    },
+    {
+      "id": "1939756a-f6ff-466f-95c9-00d461d4b6f4",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-P8ALJNSFH",
+      "created_at": "2026-07-27T06:41:48.227Z"
+    },
+    {
+      "id": "f9c1553f-f782-4d63-a26f-beaf328ae302",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:28:53.017Z"
+    },
+    {
+      "id": "ddeb0371-13ec-4829-9fd4-36db868d03da",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:29:17.600Z"
+    },
+    {
+      "id": "a123fad0-21da-48c4-92f2-895bf90014ed",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:33:54.657Z"
+    },
+    {
+      "id": "97b0a685-6548-4553-9d5c-a73cb26a82ea",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:34:39.667Z"
+    },
+    {
+      "id": "e5da3b6d-a73a-4374-b169-c78d891c0d8d",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:35:41.209Z"
+    },
+    {
+      "id": "b6816bb1-2bd3-48d0-a92a-fa426ce4fe2b",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T03:36:06.127Z"
+    },
+    {
+      "id": "241c58be-35fb-4703-85cd-72fb68924ed7",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:10:03.266Z"
+    },
+    {
+      "id": "9ad8c7f7-f136-4fdf-9931-8926fb24a88e",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:11:37.783Z"
+    },
+    {
+      "id": "368706b7-2817-4261-95ec-a4868ff899f4",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:14:44.169Z"
+    },
+    {
+      "id": "96d7da07-2fff-4909-b8bf-8d025dce605f",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T04:17:02.079Z"
+    },
+    {
+      "id": "15da9a2e-9c66-49e0-860d-ead0990989fb",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:17:37.795Z"
+    },
+    {
+      "id": "0665fad6-c3e7-40bc-bb50-36a767f4caa1",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T04:18:23.829Z"
+    },
+    {
+      "id": "c32bf7cb-80cf-484f-8d0e-2fb60819c823",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "INVENTORY_STOCK_UPDATE",
+      "details": "Adjusted product p1000000-0000-0000-0000-000000000001 stock in branch b1000000-0000-0000-0000-000000000001 to 55",
+      "created_at": "2026-07-28T04:18:59.312Z"
+    },
+    {
+      "id": "7049801c-9bf7-473c-9591-4ad763783f7b",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "INVENTORY_STOCK_UPDATE",
+      "details": "Adjusted product p1000000-0000-0000-0000-000000000001 stock in branch b1000000-0000-0000-0000-000000000002 to 0",
+      "created_at": "2026-07-28T04:18:59.344Z"
+    },
+    {
+      "id": "710b39ff-0b04-4dc5-8de5-f7b02b04aabc",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "INVENTORY_STOCK_UPDATE",
+      "details": "Adjusted product p1000000-0000-0000-0000-000000000001 stock in branch b1000000-0000-0000-0000-000000000003 to 0",
+      "created_at": "2026-07-28T04:18:59.374Z"
+    },
+    {
+      "id": "084dd4e5-f0c0-4019-b6b6-377e31e786e9",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:19:16.774Z"
+    },
+    {
+      "id": "2e3796f5-d422-4d6b-9ab7-e18989657c49",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:19:47.163Z"
+    },
+    {
+      "id": "a725361d-b9d0-401c-86ba-185a95f6cafa",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:20:06.330Z"
+    },
+    {
+      "id": "d1030e1c-4eb2-48d8-acee-f27898910fb0",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T04:22:29.784Z"
+    },
+    {
+      "id": "eacd286b-e745-4297-9faa-da2e040d5922",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:29:02.982Z"
+    },
+    {
+      "id": "b0de1f90-3cef-49f5-ab58-1e80a9cd64ca",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:29:06.056Z"
+    },
+    {
+      "id": "7c2bdfbb-2ee6-472e-9adb-f0a1c5ebd9ba",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:34:02.401Z"
+    },
+    {
+      "id": "bdbcc05a-75cb-4314-9f3f-fd6aae6c39a4",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:34:05.158Z"
+    },
+    {
+      "id": "fc24365e-b015-4f03-a124-4f2b835fb272",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T04:52:06.658Z"
+    },
+    {
+      "id": "bf8a6257-4d8b-4f03-af20-39f053fe307e",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:53:34.083Z"
+    },
+    {
+      "id": "e56ebd68-9237-40a3-9327-517611cdf508",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T04:53:49.623Z"
+    }
+  ]
+}

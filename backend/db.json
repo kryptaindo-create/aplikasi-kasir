@@ -397,7 +397,7 @@
       "user_id": "u1000000-0000-0000-0000-000000000002",
       "device_identifier": "DEV-SZB91V8PN",
       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InUxMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMiIsInVzZXJuYW1lIjoia2FzaXJfc2VuYXlhbiIsInJvbGUiOiJDQVNISUVSIiwiYnJhbmNoX2lkIjoiYjEwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzg1MjkwMTQ4LCJleHAiOjE3ODUzNzY1NDh9.b27Exf_oGnKhy4MrMUrw3Csj14uiipVpcb-Tlt1QMTs",
-      "last_active_at": "2026-07-29T02:08:48.645Z"
+      "last_active_at": "2026-07-29T02:46:54.237Z"
     }
   ],
   "audit_logs": [

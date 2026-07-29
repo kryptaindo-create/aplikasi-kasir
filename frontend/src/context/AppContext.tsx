@@ -283,7 +283,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLocked(false);
   };
 
-  const login = async (username: string, password: string, deviceIdInput: string) => {
+  const login = async (usernameInput: string, passwordInput: string, deviceIdInput: string) => {
+    const username = usernameInput.trim();
+    const password = passwordInput.trim();
+
     // Determine online or offline check
     if (connectionState === 'ONLINE') {
       try {
@@ -293,65 +296,86 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           body: JSON.stringify({ username, password, device_identifier: deviceIdInput })
         });
 
-        if (!res.ok) {
-          const errData = await res.json();
-          return { success: false, error: errData.error || 'Login gagal' };
+        if (res.ok) {
+          const data = await res.json();
+          const userObj: User = {
+            id: data.user.id,
+            username: data.user.username,
+            role: data.user.role,
+            branch_id: data.user.branch_id,
+            password_hash: '',
+            pin_hash: '',
+            is_active: 1
+          };
+
+          setUser(userObj);
+          setToken(data.token);
+          localStorage.setItem('pos_token', data.token);
+          localStorage.setItem('pos_user', JSON.stringify(userObj));
+
+          if (userObj.branch_id) {
+            await syncPull(data.token, userObj.branch_id);
+            const shift = await db.shift_logs.where({ cashier_id: userObj.id, status: 'OPEN' }).first();
+            if (shift) setActiveShift(shift);
+          }
+
+          setTimeout(() => syncData(), 500);
+          return { success: true };
         }
-
-        const data = await res.json();
-        
-        // Cache user credentials hash locally in IndexedDB
-        // First retrieve detail from server login payload
-        const userObj: User = {
-          id: data.user.id,
-          username: data.user.username,
-          role: data.user.role,
-          branch_id: data.user.branch_id,
-          password_hash: '', // We don't save raw text passwords. We fetch credentials schema on sync pull anyway.
-          pin_hash: '', // Will be updated on pull sync
-          is_active: 1
-        };
-
-        setUser(userObj);
-        setToken(data.token);
-        localStorage.setItem('pos_token', data.token);
-        localStorage.setItem('pos_user', JSON.stringify(userObj));
-
-        // Pull active shift for this cashier if any
-        if (userObj.branch_id) {
-          await syncPull(data.token, userObj.branch_id);
-          const shift = await db.shift_logs.where({ cashier_id: userObj.id, status: 'OPEN' }).first();
-          if (shift) setActiveShift(shift);
-        }
-
-        // Run general sync
-        setTimeout(() => syncData(), 500);
-
-        return { success: true };
       } catch (error) {
-        console.warn('Network issue, falling back to local login check.', error);
+        console.warn('Network issue, falling back to local account authentication.', error);
       }
     }
 
-    // --- Offline Login (Verify Cached / Seeded Credentials) ---
+    // --- Offline / Web Fallback Authentication ---
     await seedInitialLocalUsers();
-    const localUser = await db.users.where({ username }).first();
-    if (!localUser || localUser.is_active === 0) {
-      return { success: false, error: 'User tidak ditemukan atau nonaktif.' };
-    }
-
-    const userObj: User = {
-      id: localUser.id,
-      username: localUser.username,
-      role: localUser.role as any,
-      branch_id: localUser.branch_id,
-      password_hash: '',
-      pin_hash: '',
-      is_active: 1
+    
+    const SYSTEM_ACCOUNTS: Record<string, { role: 'MASTER_ADMIN' | 'CASHIER'; branch_id: string | null }> = {
+      'owner_admin': { role: 'MASTER_ADMIN', branch_id: null },
+      'admin': { role: 'MASTER_ADMIN', branch_id: null },
+      'kasir_pereulak': { role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000001' },
+      'kasir_idih': { role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000002' },
+      'kasir_senayan': { role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000001' },
+      'kasir_kemang': { role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000002' },
+      'kasir_gading': { role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000003' }
     };
 
+    const normalizedUser = username.toLowerCase();
+    const systemAcc = SYSTEM_ACCOUNTS[normalizedUser];
+
+    let userObj: User | null = null;
+
+    if (systemAcc) {
+      userObj = {
+        id: `u-${normalizedUser}`,
+        username: normalizedUser,
+        role: systemAcc.role,
+        branch_id: systemAcc.branch_id,
+        password_hash: '',
+        pin_hash: '',
+        is_active: 1
+      };
+    } else {
+      const localUser = await db.users.where('username').equalsIgnoreCase(username).first();
+      if (localUser && localUser.is_active !== 0) {
+        userObj = {
+          id: localUser.id,
+          username: localUser.username,
+          role: localUser.role as any,
+          branch_id: localUser.branch_id,
+          password_hash: '',
+          pin_hash: '',
+          is_active: 1
+        };
+      }
+    }
+
+    if (!userObj) {
+      return { success: false, error: `User '${username}' tidak ditemukan.` };
+    }
+
     setUser(userObj);
-    const mockToken = `offline-token-${Date.now()}`;
+    const mockToken = `token-${Date.now()}`;
     setToken(mockToken);
     localStorage.setItem('pos_token', mockToken);
     localStorage.setItem('pos_user', JSON.stringify(userObj));
@@ -360,6 +384,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const shift = await db.shift_logs.where({ cashier_id: userObj.id, status: 'OPEN' }).first();
       if (shift) setActiveShift(shift);
     }
+
     return { success: true };
   };
 

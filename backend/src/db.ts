@@ -28,9 +28,9 @@ interface DbStructure {
 // Initial seed data
 const initialData: DbStructure = {
   branches: [
-    { id: 'b1000000-0000-0000-0000-000000000001', name: 'Wajad Diesel Pereulak', address: 'Jl. Wajad Diesel Pereulak No. 1', phone: '021-5550001' },
-    { id: 'b1000000-0000-0000-0000-000000000002', name: 'Wajah Diesel Idi', address: 'Jl. Wajah Diesel Idi No. 12', phone: '021-5550002' },
-    { id: 'b1000000-0000-0000-0000-000000000003', name: 'Astana Plastik', address: 'Jl. Astana Plastik No. 45', phone: '021-5550003' }
+    { id: 'b1000000-0000-0000-0000-000000000001', name: 'WAJAH DIESEL PEREULAK', address: 'Jl. Wajah Diesel Pereulak No. 1', phone: '021-5550001' },
+    { id: 'b1000000-0000-0000-0000-000000000002', name: 'WAJAH DIESEL IDIH', address: 'Jl. Wajah Diesel Idih No. 12', phone: '021-5550002' },
+    { id: 'b1000000-0000-0000-0000-000000000003', name: 'ASTANA PLASTIK', address: 'Jl. Astana Plastik No. 45', phone: '021-5550003' }
   ],
   users: [
     { id: 'u1000000-0000-0000-0000-000000000001', username: 'owner_admin', password_hash: '$2a$10$tMh7jLwz9f7w8U.Z12n9xe9e5n05y5W.PfeM5o2sHzeuS94.y0F.a', pin_hash: '$2a$10$wO/LzI63y6Z3N8KzH60.veaY/OQ3O7.UeeU3e6E7yN7Y3N.K6e', role: 'MASTER_ADMIN', branch_id: null, is_active: true },

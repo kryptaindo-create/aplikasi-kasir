@@ -21,6 +21,7 @@ export interface Product {
   cost_price: number; // Moving Average Cost
   max_discount: number; // default 10.00
   updated_at: string;
+  created_at?: string; // Tanggal Masuk Barang
 }
 
 export interface Inventory {

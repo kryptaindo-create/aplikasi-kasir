@@ -2,20 +2,20 @@
   "branches": [
     {
       "id": "b1000000-0000-0000-0000-000000000001",
-      "name": "Toko Cabang A - Senayan",
-      "address": "Jl. Jenderal Sudirman No. 1, Jakarta",
+      "name": "WAJAH DIESEL PEREULAK",
+      "address": "Jl. Wajah Diesel Pereulak No. 1",
       "phone": "021-5550001"
     },
     {
       "id": "b1000000-0000-0000-0000-000000000002",
-      "name": "Toko Cabang B - Kemang",
-      "address": "Jl. Kemang Raya No. 12, Jakarta",
+      "name": "WAJAH DIESEL IDIH",
+      "address": "Jl. Wajah Diesel Idih No. 12",
       "phone": "021-5550002"
     },
     {
       "id": "b1000000-0000-0000-0000-000000000003",
-      "name": "Toko Cabang C - Kelapa Gading",
-      "address": "Jl. Boulevard Raya No. 45, Jakarta",
+      "name": "ASTANA PLASTIK",
+      "address": "Jl. Astana Plastik No. 45",
       "phone": "021-5550003"
     }
   ],
@@ -125,7 +125,7 @@
     {
       "product_id": "p1000000-0000-0000-0000-000000000001",
       "branch_id": "b1000000-0000-0000-0000-000000000001",
-      "stock": 159
+      "stock": 157
     },
     {
       "product_id": "p1000000-0000-0000-0000-000000000002",
@@ -235,6 +235,19 @@
       "cash_received": 100000,
       "cash_change": 46000,
       "created_at": "2026-07-28T04:47:56.869Z"
+    },
+    {
+      "id": "TX-b100-DEV-FMGPJTCR5-20260728091332-5271",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "member_id": null,
+      "subtotal": 39000,
+      "total_discount": 0,
+      "grand_total": 39000,
+      "payment_method": "CASH",
+      "cash_received": 50000,
+      "cash_change": 11000,
+      "created_at": "2026-07-28T09:13:32.572Z"
     }
   ],
   "sale_items": [
@@ -309,6 +322,15 @@
       "price_at_sale": 22000,
       "cost_at_sale": 12000,
       "discount_percent": 0
+    },
+    {
+      "id": "999bf523-8743-4bfa-88be-5565cc364ce5",
+      "sale_id": "TX-b100-DEV-FMGPJTCR5-20260728091332-5271",
+      "product_id": "p1000000-0000-0000-0000-000000000001",
+      "quantity": 2,
+      "price_at_sale": 19500,
+      "cost_at_sale": 10000,
+      "discount_percent": 0
     }
   ],
   "shift_logs": [
@@ -337,13 +359,47 @@
       "variance": null,
       "status": "OPEN",
       "created_at": "2026-07-28T04:10:09.797Z"
+    },
+    {
+      "id": "50711119-d28b-4b96-bc20-ca511172b610",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "opening_time": "2026-07-29T01:44:07.766Z",
+      "closing_time": null,
+      "opening_cash": 123456,
+      "expected_cash": null,
+      "actual_cash": null,
+      "variance": null,
+      "status": "OPEN",
+      "created_at": "2026-07-29T01:44:07.766Z"
+    },
+    {
+      "id": "57f4110c-4b25-4c7b-ba86-7214144ca51b",
+      "cashier_id": "u1000000-0000-0000-0000-000000000002",
+      "branch_id": "b1000000-0000-0000-0000-000000000001",
+      "opening_time": "2026-07-29T02:03:16.494Z",
+      "closing_time": null,
+      "opening_cash": 50000588,
+      "expected_cash": null,
+      "actual_cash": null,
+      "variance": null,
+      "status": "OPEN",
+      "created_at": "2026-07-29T02:03:16.494Z"
     }
   ],
   "void_audit_trail": [],
   "discount_audit_trail": [],
   "stock_claims": [],
   "stock_transfers": [],
-  "active_sessions": [],
+  "active_sessions": [
+    {
+      "id": "42055077-36bb-45ce-8762-6a95d1c17f1f",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "device_identifier": "DEV-SZB91V8PN",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InUxMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMiIsInVzZXJuYW1lIjoia2FzaXJfc2VuYXlhbiIsInJvbGUiOiJDQVNISUVSIiwiYnJhbmNoX2lkIjoiYjEwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzg1MjkwMTQ4LCJleHAiOjE3ODUzNzY1NDh9.b27Exf_oGnKhy4MrMUrw3Csj14uiipVpcb-Tlt1QMTs",
+      "last_active_at": "2026-07-29T02:08:48.645Z"
+    }
+  ],
   "audit_logs": [
     {
       "id": "8af76684-8505-421c-b4f0-ca79ec6af22b",
@@ -554,6 +610,174 @@
       "action": "LOGOUT",
       "details": "Logged out from device: DEV-KJS9F7YOF",
       "created_at": "2026-07-28T04:53:49.623Z"
+    },
+    {
+      "id": "1bb81e39-2466-4039-9002-06cb88132eb9",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T04:57:44.794Z"
+    },
+    {
+      "id": "7e35a5fa-ae16-4484-b98b-321666e66faa",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T09:30:56.941Z"
+    },
+    {
+      "id": "4b2d12c1-f227-4cc0-b850-554bc01d2c13",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T09:32:50.425Z"
+    },
+    {
+      "id": "825d6de1-642e-489f-91de-ba20df7eedff",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-KJS9F7YOF",
+      "created_at": "2026-07-28T09:32:53.593Z"
+    },
+    {
+      "id": "e0522d16-8658-48e8-9902-fe8f78a9aeed",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T09:56:51.535Z"
+    },
+    {
+      "id": "5a76adb8-d247-4378-9630-19aaa2c8a853",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T09:57:24.674Z"
+    },
+    {
+      "id": "4f610253-c1ef-443d-8d40-b9277f54dda3",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-FMGPJTCR5",
+      "created_at": "2026-07-28T10:02:09.054Z"
+    },
+    {
+      "id": "3efcf735-b907-4c85-ae29-6d30f10c11f5",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-UA4AKN479",
+      "created_at": "2026-07-29T01:34:42.857Z"
+    },
+    {
+      "id": "c2087f68-ffc4-4854-8935-2ed36a67e71c",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:35:24.020Z"
+    },
+    {
+      "id": "4950ed19-ec6b-4653-89ed-cd77c1b092cd",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:41:11.055Z"
+    },
+    {
+      "id": "7bc0dca6-8acb-46f3-9de8-ef8308218577",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:44:04.711Z"
+    },
+    {
+      "id": "6ec9dd2a-8ba2-4fb8-97d4-f84cc8fabc5a",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:44:48.072Z"
+    },
+    {
+      "id": "6bae7e7d-e3dc-412d-bf7a-1a842c91b5e0",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:44:59.890Z"
+    },
+    {
+      "id": "800efcaa-31e9-47dd-8b0d-99fd761fa503",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:46:10.189Z"
+    },
+    {
+      "id": "6998a122-db51-4b49-8537-b625ec61244e",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:47:40.503Z"
+    },
+    {
+      "id": "6cb10b3f-515b-45dd-a678-334efa506cdd",
+      "user_id": "u1000000-0000-0000-0000-000000000001",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:48:16.602Z"
+    },
+    {
+      "id": "94aa2d41-7f7a-4b11-a9e1-09e84811b5e7",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:49:08.095Z"
+    },
+    {
+      "id": "7a12026c-78cc-461c-ab8c-9369490d66ae",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:50:13.672Z"
+    },
+    {
+      "id": "1edea697-8ba0-46ad-a153-d9ca063c2b23",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-AZ9JFRI2U",
+      "created_at": "2026-07-29T01:50:50.097Z"
+    },
+    {
+      "id": "e2bf66f2-8d61-4fae-aa10-958854ff1b5b",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:51:16.118Z"
+    },
+    {
+      "id": "44dddfa3-8f8a-4ea7-8cd3-7f3e7ff9c687",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:54:42.264Z"
+    },
+    {
+      "id": "fc402717-22af-42f3-a4fe-0b3f3b03a4b4",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:54:45.746Z"
+    },
+    {
+      "id": "71681879-04ce-4304-b131-10eb50bd82d4",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGOUT",
+      "details": "Logged out from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:55:37.593Z"
+    },
+    {
+      "id": "bba96c13-afd3-4ccf-8e83-fce42eb8cb62",
+      "user_id": "u1000000-0000-0000-0000-000000000002",
+      "action": "LOGIN",
+      "details": "Logged in from device: DEV-SZB91V8PN",
+      "created_at": "2026-07-29T01:55:48.718Z"
     }
   ]
 }

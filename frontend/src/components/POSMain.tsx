@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useApp, type CartItem } from '../context/AppContext';
-import { db, type Product } from '../db';
+import { useApp } from '../context/AppContext';
+import { db, type Inventory } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 export const POSMain: React.FC = () => {
@@ -44,6 +44,7 @@ export const POSMain: React.FC = () => {
 
   // Shift Gate
   const [openingCashInput, setOpeningCashInput] = useState<string>('');
+  const [mobileTab, setMobileTab] = useState<'CATALOG' | 'CART'>('CATALOG');
   
   // Close Shift Modals
   const [showCloseShiftModal, setShowCloseShiftModal] = useState<boolean>(false);
@@ -74,9 +75,10 @@ export const POSMain: React.FC = () => {
   // Live query for products
   const products = useLiveQuery(() => db.products.toArray()) || [];
   // Live query for branch inventories
-  const inventories = useLiveQuery(() => 
-    user?.branch_id ? db.inventories.where({ branch_id: user.branch_id }).toArray() : Promise.resolve([])
-  ) || [];
+  const effectiveBranchId = user?.branch_id || activeShift?.branch_id || 'b1000000-0000-0000-0000-000000000001';
+  const inventories = useLiveQuery<Inventory[]>(() => 
+    db.inventories.where({ branch_id: effectiveBranchId }).toArray()
+  , [effectiveBranchId]) || [];
 
   // Focus barcode scanner input ONLY when shift opens (not on every cart change)
   useEffect(() => {
@@ -136,14 +138,19 @@ export const POSMain: React.FC = () => {
   };
 
   // Open Shift
-  const handleOpenShiftSubmit = (e: React.FormEvent) => {
+  const handleOpenShiftSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cash = parseFloat(openingCashInput);
     if (isNaN(cash) || cash < 0) {
       alert('Masukkan jumlah modal awal yang valid.');
       return;
     }
-    openShift(cash);
+    try {
+      await openShift(cash);
+    } catch (err: any) {
+      console.error('Buka shift error:', err);
+      alert('Gagal membuka shift: ' + (err?.message || err));
+    }
   };
 
   // Close Shift
@@ -357,8 +364,8 @@ export const POSMain: React.FC = () => {
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#08090d] relative" onClick={keepFocus}>
       {/* 2.1 POS HEADER */}
-      <header className="glass-panel rounded-none border-t-0 border-x-0 py-4 px-6 flex items-center justify-between z-10 bg-black/20">
-        <div className="flex items-center gap-4">
+      <header className="glass-panel rounded-none border-t-0 border-x-0 py-2.5 px-3 sm:px-6 flex items-center justify-between z-10 bg-black/20 gap-2">
+        <div className="hidden md:flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-black shadow-md border border-white/10">
             L
           </div>
@@ -372,52 +379,92 @@ export const POSMain: React.FC = () => {
           </div>
         </div>
 
+        <div className="md:hidden flex items-center gap-2">
+          <span className="text-xs font-bold text-gray-300">
+            Cabang {user?.branch_id?.substring(0, 8)}
+          </span>
+        </div>
+
         {/* Sync Controls & Heartbeat */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {/* Heartbeat connection badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
             <div className={`w-2 h-2 rounded-full pulse-glow-indicator ${connectionState === 'ONLINE' ? 'bg-emerald text-emerald-400' : 'bg-amber text-amber-400'}`} />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-300">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-300">
               {connectionState === 'ONLINE' ? 'Online' : 'Offline'}
             </span>
           </div>
 
           {/* Sync mutations tracker */}
           {pendingMutations > 0 && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold animate-pulse">
-              <span>{pendingMutations} Mutasi Lokal</span>
+            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[9px] font-bold animate-pulse">
+              <span>{pendingMutations} Mutasi</span>
             </div>
           )}
 
           <button
             onClick={syncData}
             disabled={isSyncing || connectionState === 'OFFLINE'}
-            className="btn-secondary py-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5"
+            className="btn-secondary py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl text-[10px] sm:text-xs flex items-center gap-1"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18" />
             </svg>
-            <span className="font-bold uppercase tracking-wider text-[10px]">
+            <span className="font-bold uppercase tracking-wider">
               {isSyncing ? 'Sinkron...' : 'Sinkron'}
             </span>
           </button>
 
-          <button onClick={() => setShowCloseShiftModal(true)} className="btn-danger py-2 px-3.5 rounded-xl text-xs font-bold uppercase tracking-wider">
+          <button onClick={() => setShowCloseShiftModal(true)} className="btn-danger py-1.5 px-3 sm:py-2 sm:px-3.5 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider shrink-0">
             Tutup Shift
           </button>
         </div>
       </header>
 
+      {/* MOBILE TAB BAR SELECTOR */}
+      <div className="md:hidden flex bg-[#0d0f17] border-b border-white/8 p-1.5 gap-1.5 z-10">
+        <button
+          onClick={() => setMobileTab('CATALOG')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            mobileTab === 'CATALOG'
+              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          <span>Katalog Produk</span>
+        </button>
+
+        <button
+          onClick={() => setMobileTab('CART')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all relative ${
+            mobileTab === 'CART'
+              ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow'
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 0a2 2 0 100 4 2 2 0 000-4z" />
+          </svg>
+          <span>Keranjang ({cart.reduce((a, c) => a + c.quantity, 0)})</span>
+          {cart.length > 0 && (
+            <span className="w-2 h-2 rounded-full bg-emerald absolute top-1.5 right-3 animate-ping" />
+          )}
+        </button>
+      </div>
+
       {/* 2.2 CONTENT BODY */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden relative">
         {/* LEFT COLUMN: BARCODE SCANNER & PRODUCT CATALOG */}
-        <div className="w-3/5 p-6 flex flex-col gap-6 overflow-hidden">
+        <div className={`w-full md:w-3/5 p-3.5 sm:p-6 flex-col gap-4 sm:gap-6 overflow-y-auto md:overflow-hidden ${mobileTab === 'CATALOG' ? 'flex' : 'hidden md:flex'}`}>
           {/* Scanner Input (Focused Barcode console) */}
-          <div className="glass-panel p-4 flex items-center gap-4 border-indigo-500/20 bg-indigo-500/5 shadow-[0_0_15px_rgba(99,102,241,0.03)]">
-            <div className="text-indigo-400 relative">
+          <div className="glass-panel p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border-indigo-500/20 bg-indigo-500/5 shadow-[0_0_15px_rgba(99,102,241,0.03)]">
+            <div className="text-indigo-400 relative shrink-0">
               <div className="w-1.5 h-1.5 rounded-full bg-rose-500 absolute -top-0.5 -right-0.5 animate-ping" />
               <div className="w-1.5 h-1.5 rounded-full bg-rose-600 absolute -top-0.5 -right-0.5" />
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h.01M16 20h2M4 4h2M4 16h2M4 12h2M4 8h2m12 0h2m-2 4h2m-2 4h2M12 20h.01M16 12h.01M16 8h.01M12 8h.01M20 16h.01M20 4h.01M16 4h.01M12 4h.01" />
               </svg>
             </div>
@@ -428,67 +475,64 @@ export const POSMain: React.FC = () => {
                 value={barcodeInput}
                 onChange={e => setBarcodeInput(e.target.value)}
                 placeholder="Scan Barcode Produk Kasir..."
-                className="w-full bg-transparent border-none text-white text-base font-semibold placeholder-gray-500 focus:ring-0 focus:box-shadow-none p-0"
+                className="w-full bg-transparent border-none text-white font-mono placeholder-indigo-300/40 text-sm focus:outline-none"
               />
             </form>
-            <span className="text-[9px] text-indigo-400 font-bold uppercase border border-indigo-500/30 px-2 py-0.5 rounded-lg bg-indigo-500/10 tracking-wider">
-              Ready Scanner
-            </span>
           </div>
 
-          {/* Search and Category Filter */}
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Cari produk dengan nama..."
-                className="w-full pl-10"
-              />
-              <div className="absolute left-3.5 top-3.5 text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
+          {/* Search + Categories */}
+          <div className="flex flex-col gap-3">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari nama produk..."
+              className="w-full px-4 py-2.5 bg-white/3 border border-white/8 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-500/40"
+            />
             
-            <select
-              value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
-              className="w-48 bg-[#0f111a] border-white/5 font-semibold text-xs"
-            >
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedCategory === cat
+                      ? 'bg-indigo-500 text-white shadow'
+                      : 'bg-white/5 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
-          {/* Catalog grid */}
-          <div className="flex-1 overflow-y-auto pr-1">
-            <div className="grid grid-cols-3 gap-4">
+          {/* Product Grid */}
+          <div className="flex-1 overflow-y-auto pr-1 pb-16 md:pb-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {filteredProducts.map(p => {
                 const stock = getProductStock(p.id);
                 const isCriticalStock = stock <= 5;
+
                 return (
                   <button
                     key={p.id}
                     onClick={() => {
-                      if (stock <= 0) alert('Stok produk kosong!');
+                      if (stock <= 0) alert(`Stok ${p.name} habis!`);
                       else addToCart(p);
                     }}
-                    className="glass-panel p-4 text-left border-white/5 glass-panel-hover flex flex-col h-32 justify-between"
+                    className="glass-panel p-3.5 text-left border-white/5 glass-panel-hover flex flex-col h-32 justify-between"
                   >
                     <div>
-                      <span className="text-[10px] text-indigo-400 font-bold tracking-wider uppercase bg-indigo-500/5 px-2 py-0.5 rounded-md border border-indigo-500/10">
+                      <span className="text-[9px] text-indigo-400 font-bold tracking-wider uppercase bg-indigo-500/5 px-2 py-0.5 rounded-md border border-indigo-500/10">
                         {p.category}
                       </span>
-                      <h3 className="text-sm font-bold text-white truncate w-full mt-2.5">{p.name}</h3>
-                      <p className="text-[10px] text-gray-500 font-mono mt-0.5">{p.barcode}</p>
+                      <h3 className="text-xs sm:text-sm font-bold text-white truncate w-full mt-2">{p.name}</h3>
+                      <p className="text-[9px] text-gray-500 font-mono mt-0.5 truncate">{p.barcode}</p>
                     </div>
-                    <div className="flex justify-between items-end w-full">
-                      <span className="text-base font-extrabold text-emerald">Rp {p.selling_price.toLocaleString('id-ID')}</span>
-                      <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold border ${
+                    <div className="flex justify-between items-end w-full gap-1">
+                      <span className="text-sm sm:text-base font-extrabold text-emerald truncate">Rp {p.selling_price.toLocaleString('id-ID')}</span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold border shrink-0 ${
                         isCriticalStock 
                           ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
                           : 'bg-white/5 text-gray-400 border-transparent'
@@ -504,7 +548,7 @@ export const POSMain: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: SHOPPING CART */}
-        <div className="w-2/5 border-l border-white/10 flex flex-col overflow-hidden bg-black/15">
+        <div className={`w-full md:w-2/5 border-t md:border-t-0 md:border-l border-white/10 flex-col overflow-hidden bg-black/15 min-h-[350px] ${mobileTab === 'CART' ? 'flex' : 'hidden md:flex'}`}>
           <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/3">
             <h2 className="text-base font-extrabold text-white flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -638,13 +682,13 @@ export const POSMain: React.FC = () => {
             </div>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(['CASH', 'QRIS', 'DEBIT', 'RECEIVABLE'] as const).map(method => (
                 <button
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-1 rounded-xl text-[10px] font-bold tracking-wider uppercase ${
+                  className={`py-2.5 px-2 rounded-xl text-[10px] font-bold tracking-wider uppercase ${
                     paymentMethod === method 
                       ? 'btn-primary border-indigo-500/20 shadow-md shadow-indigo-500/10' 
                       : 'btn-secondary border-white/5 text-gray-400'
@@ -657,7 +701,7 @@ export const POSMain: React.FC = () => {
 
             {/* Cash Received Handler if CASH selected */}
             {paymentMethod === 'CASH' && (
-              <div className="flex gap-3 items-end bg-black/20 p-3 rounded-xl border border-white/5 animate-fade-in">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end bg-black/20 p-3 rounded-xl border border-white/5 animate-fade-in">
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Uang Diterima (Rp)</label>
                   <input
@@ -671,7 +715,7 @@ export const POSMain: React.FC = () => {
                     autoComplete="off"
                   />
                 </div>
-                <div className="w-1/3 flex flex-col text-right">
+                <div className="w-full sm:w-1/3 flex justify-between sm:flex-col sm:text-right border-t sm:border-t-0 border-white/5 pt-2 sm:pt-0">
                   <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Kembalian</span>
                   <span className="text-sm font-extrabold text-white pt-1">
                     Rp {Math.max(0, cashReceived - grandTotal).toLocaleString('id-ID')}
@@ -683,13 +727,36 @@ export const POSMain: React.FC = () => {
             <button
               onClick={handleCheckoutSubmit}
               disabled={cart.length === 0}
-              className="btn-success w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider"
+              className="btn-success w-full py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-lg"
             >
               Bayar Transaksi
             </button>
           </div>
         </div>
       </div>
+
+      {/* Sticky Bottom Floating Cart Bar for Mobile */}
+      {cart.length > 0 && mobileTab === 'CATALOG' && (
+        <div className="md:hidden fixed bottom-14 left-0 right-0 p-3 bg-indigo-600/95 backdrop-blur-md border-t border-indigo-400/30 flex items-center justify-between z-30 shadow-2xl animate-fade-in">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">
+              {cart.reduce((a, c) => a + c.quantity, 0)} Item di Keranjang
+            </span>
+            <span className="text-base font-extrabold text-white">
+              Rp {grandTotal.toLocaleString('id-ID')}
+            </span>
+          </div>
+          <button
+            onClick={() => setMobileTab('CART')}
+            className="bg-white text-indigo-950 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg active:scale-95 transition-transform"
+          >
+            <span>Lihat Keranjang &amp; Bayar</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* --- VOID PROTECTION SECURITY MODAL --- */}
       {showVoidModal && (
@@ -922,8 +989,9 @@ export const POSMain: React.FC = () => {
                   )}
                 </div>
 
-                <div className="text-center text-gray-600 text-[10px] py-3 border-t border-dashed border-white/10">
-                  Terima kasih atas kunjungan Anda
+                <div className="text-center text-gray-500 text-[10px] py-3 border-t border-dashed border-white/10 space-y-0.5">
+                  <div>Terima kasih atas kunjungan Anda</div>
+                  <div className="text-indigo-400 font-bold text-[9px] tracking-widest uppercase">Dibuat oleh KRYPTA</div>
                 </div>
               </div>
             </div>

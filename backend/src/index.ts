@@ -84,6 +84,6 @@ export const broadcastFraudAlert = (alertType: string, payload: any) => {
 };
 
 // Start Server
-server.listen(port, () => {
-  console.log(`[POS Server] Running on http://localhost:${port}`);
+server.listen(port, '0.0.0.0', () => {
+  console.log(`[POS Server] Running on http://0.0.0.0:${port}`);
 });

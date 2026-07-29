@@ -110,13 +110,16 @@ export const AuthModal: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-8 border-t border-white/5 pt-6 text-center">
+        <div className="mt-8 border-t border-white/5 pt-6 text-center space-y-2">
           <p className="text-xs text-gray-500">
             Perangkat Terdaftar: <span className="font-semibold text-gray-400">{deviceId}</span>
           </p>
-          <p className="text-[10px] text-gray-600 mt-2">
+          <p className="text-[10px] text-gray-600">
             * 1 Akun kasir hanya dapat aktif pada 1 perangkat secara bersamaan. Login di tempat lain akan menutup sesi perangkat lama.
           </p>
+          <div className="pt-2 border-t border-white/5">
+            <span className="text-xs text-gray-500 font-medium">Dibuat oleh <strong className="text-indigo-400 font-bold tracking-widest uppercase">KRYPTA</strong></span>
+          </div>
         </div>
       </div>
     </div>

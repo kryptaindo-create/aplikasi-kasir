@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { db } from '../db';
+import { db, type Inventory } from '../db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 const BRANCH_LIST = [
-  { id: 'b1000000-0000-0000-0000-000000000001', name: 'Wajad Diesel Pereulak' },
-  { id: 'b1000000-0000-0000-0000-000000000002', name: 'Wajah Diesel Idi' },
-  { id: 'b1000000-0000-0000-0000-000000000003', name: 'Astana Plastik' }
+  { id: 'b1000000-0000-0000-0000-000000000001', name: 'WAJAH DIESEL PEREULAK' },
+  { id: 'b1000000-0000-0000-0000-000000000002', name: 'WAJAH DIESEL IDIH' },
+  { id: 'b1000000-0000-0000-0000-000000000003', name: 'ASTANA PLASTIK' }
 ];
 
 export const StockTransfer: React.FC = () => {
@@ -20,8 +20,8 @@ export const StockTransfer: React.FC = () => {
 
   // --- DB QUERIES ---
   const products = useLiveQuery(() => db.products.toArray()) || [];
-  const inventories = useLiveQuery(() => 
-    user?.branch_id ? db.inventories.where({ branch_id: user.branch_id }).toArray() : Promise.resolve([])
+  const inventories = useLiveQuery<Inventory[]>(() => 
+    user?.branch_id ? db.inventories.where({ branch_id: user.branch_id }).toArray() : Promise.resolve([] as Inventory[])
   ) || [];
   
   const transfers = useLiveQuery(() => db.stock_transfers.reverse().toArray()) || [];
@@ -88,53 +88,53 @@ export const StockTransfer: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
+    <div className="flex-1 p-3.5 sm:p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
       {/* Background ambient glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[35vw] h-[35vw] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-pink-500/5 blur-[120px] pointer-events-none" />
 
-      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
-        <div className="flex justify-between items-center bg-white/3 p-4 rounded-2xl glass-panel border-white/5">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 relative z-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white/3 p-3.5 sm:p-4 rounded-2xl glass-panel border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow border border-white/10">
+            <div className="w-10 h-10 min-w-[2.5rem] rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow border border-white/10">
               T
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-white leading-tight">Transfer Stok Antar-Cabang</h1>
-              <p className="text-xs text-gray-400 mt-0.5">Perpindahan inventaris memerlukan konfirmasi 2-arah.</p>
+              <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">Transfer Stok Antar-Cabang</h1>
+              <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">Perpindahan inventaris memerlukan konfirmasi 2-arah.</p>
             </div>
           </div>
         </div>
 
         {/* Tab Headers (Segmented control style) */}
-        <div className="flex justify-start">
-          <div className="segmented-control">
+        <div className="flex justify-start w-full overflow-hidden">
+          <div className="segmented-control w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('TERIMA')}
               className={`segmented-item flex items-center gap-2 ${activeTab === 'TERIMA' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7V4m0 0L8 8m4-4l4 4" />
               </svg>
-              Terima Barang ({pendingIncomingTransfers.length})
+              <span>Terima Barang ({pendingIncomingTransfers.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('KIRIM')}
               className={`segmented-item flex items-center gap-2 ${activeTab === 'KIRIM' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
-              Kirim Stok
+              <span>Kirim Stok</span>
             </button>
             <button
               onClick={() => setActiveTab('RIWAYAT')}
               className={`segmented-item flex items-center gap-2 ${activeTab === 'RIWAYAT' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Riwayat Transfer
+              <span>Riwayat Transfer</span>
             </button>
           </div>
         </div>

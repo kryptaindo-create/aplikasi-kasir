@@ -3,9 +3,9 @@ import { db, type Product, type Inventory } from '../db';
 import { useApp } from '../context/AppContext';
 
 const BRANCHES_MAP: Record<string, string> = {
-  'b1000000-0000-0000-0000-000000000001': 'Wajad Diesel Pereulak',
-  'b1000000-0000-0000-0000-000000000002': 'Wajah Diesel Idi',
-  'b1000000-0000-0000-0000-000000000003': 'Astana Plastik'
+  'b1000000-0000-0000-0000-000000000001': 'WAJAH DIESEL PEREULAK',
+  'b1000000-0000-0000-0000-000000000002': 'WAJAH DIESEL IDIH',
+  'b1000000-0000-0000-0000-000000000003': 'ASTANA PLASTIK'
 };
 
 const CATEGORY_LIST = ['Makanan', 'Minuman', 'Tembakau', 'Kebutuhan Anak', 'Alat Tulis', 'Elektronik', 'Lainnya'];
@@ -20,6 +20,7 @@ export const StockInventory: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [inventories, setInventories] = useState<Inventory[]>([]);
+  const [soldMap, setSoldMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
 
   // Filters
@@ -55,8 +56,17 @@ export const StockInventory: React.FC = () => {
       setLoading(true);
       const allProducts = await db.products.toArray();
       const allInventories = await db.inventories.toArray();
+      const allSaleItems = await db.sale_items.toArray();
+
+      // Aggregate sold quantity per product
+      const sMap: Record<string, number> = {};
+      allSaleItems.forEach(item => {
+        sMap[item.product_id] = (sMap[item.product_id] || 0) + (item.quantity || 1);
+      });
+
       setProducts(allProducts);
       setInventories(allInventories);
+      setSoldMap(sMap);
     } catch (err) {
       console.error('Error loading inventory data:', err);
     } finally {
@@ -65,6 +75,32 @@ export const StockInventory: React.FC = () => {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  // Export to Excel / CSV
+  const handleExportExcel = () => {
+    let csvContent = "\uFEFFBarcode;Nama Barang;Kategori;Harga Beli (Rp);Harga Jual (Rp);Margin (Rp);Margin (%);Barang Laku;Total Stok;Tanggal Masuk\n";
+    filteredProducts.forEach(prod => {
+      const margin = prod.selling_price - prod.cost_price;
+      const marginPct = prod.selling_price > 0 ? (margin / prod.selling_price) * 100 : 0;
+      const laku = soldMap[prod.id] || 0;
+      const totalStok = Object.keys(BRANCHES_MAP).reduce((sum, bId) => {
+        const inv = inventories.find(i => i.product_id === prod.id && i.branch_id === bId);
+        return sum + (inv ? inv.stock : 0);
+      }, 0);
+      const dateIn = prod.created_at ? new Date(prod.created_at).toLocaleDateString('id-ID') : '2026-07-24';
+      
+      csvContent += `"${prod.barcode}";"${prod.name.replace(/"/g, '""')}";"${prod.category}";${prod.cost_price};${prod.selling_price};${margin};${marginPct.toFixed(1)}%;${laku};${totalStok};"${dateIn}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Data_Stok_Barang_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // ── COMPUTED ─────────────────────────────────────────────────────
   const filteredProducts = products.filter(prod => {
@@ -85,9 +121,6 @@ export const StockInventory: React.FC = () => {
   const getGrossMargin = (prod: Product): number => prod.selling_price - prod.cost_price;
   const getGrossMarginPct = (prod: Product): number =>
     prod.selling_price > 0 ? (getGrossMargin(prod) / prod.selling_price) * 100 : 0;
-
-  // Profit columns visible to owner only
-  const branchIds = isOwner ? Object.keys(BRANCHES_MAP) : (user?.branch_id ? [user.branch_id] : []);
 
   // ── EDIT MODAL ────────────────────────────────────────────────────
   const handleEditClick = (product: Product) => {
@@ -128,13 +161,13 @@ export const StockInventory: React.FC = () => {
 
       // API sync if online
       if (connectionState !== 'OFFLINE' && token) {
-        await fetch(`http://localhost:5000/api/v1/admin/products/${editingProduct.id}`, {
+        await fetch(`${window.location.origin}/api/v1/admin/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ selling_price: editSellPrice, cost_price: editCostPrice, category: editCategory })
         });
         for (const [branchId, stock] of Object.entries(editStocks)) {
-          await fetch(`http://localhost:5000/api/v1/admin/inventories/${editingProduct.id}/${branchId}`, {
+          await fetch(`${window.location.origin}/api/v1/admin/inventories/${editingProduct.id}/${branchId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ stock })
@@ -186,7 +219,7 @@ export const StockInventory: React.FC = () => {
 
       // API sync if online
       if (connectionState !== 'OFFLINE' && token) {
-        const res = await fetch('http://localhost:5000/api/v1/admin/products', {
+        const res = await fetch(`${window.location.origin}/api/v1/admin/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
@@ -234,47 +267,59 @@ export const StockInventory: React.FC = () => {
   const totalSellValue = filteredProducts.reduce((s, p) => s + p.selling_price * getTotalStock(p.id), 0);
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
+    <div className="flex-1 p-3.5 sm:p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
       {/* Radial glow bg */}
       <div className="absolute top-0 left-[20%] w-[40vw] h-[30vw] rounded-full bg-indigo-500/4 blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-[10%] w-[30vw] h-[30vw] rounded-full bg-emerald-500/4 blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 relative z-10">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Stok &amp; Katalog Barang</h1>
-            <p className="text-xs text-gray-400 mt-1">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Stok &amp; Katalog Barang</h1>
+            <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">
               {isOwner
                 ? 'Kelola produk, harga beli/jual, dan pantau margin keuntungan seluruh toko.'
                 : `Tinjau katalog produk dan persediaan di ${user?.branch_id ? BRANCHES_MAP[user.branch_id] : 'cabang Anda'}.`}
             </p>
           </div>
-          {isOwner && (
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
             <button
-              onClick={() => { setShowAddModal(true); setAddError(''); setAddSuccess(''); }}
-              className="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg"
+              onClick={handleExportExcel}
+              className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all shadow-sm flex-1 sm:flex-none justify-center"
+              title="Unduh data stok barang ke file Excel (.csv)"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Tambah Barang
+              Download Excel
             </button>
-          )}
+            {isOwner && (
+              <button
+                onClick={() => { setShowAddModal(true); setAddError(''); setAddSuccess(''); }}
+                className="btn-primary px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg flex-1 sm:flex-none justify-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Tambah Barang
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Summary KPI Cards (Owner only) */}
         {isOwner && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {[
               { label: 'Total SKU', value: `${totalProducts}`, sub: 'produk aktif', color: 'text-indigo-400' },
               { label: 'Nilai Modal (HPP)', value: fmtRp(totalStockValue), sub: 'total stok × harga beli', color: 'text-amber-400' },
               { label: 'Nilai Jual Stok', value: fmtRp(totalSellValue), sub: 'total stok × harga jual', color: 'text-emerald-400' },
               { label: 'Margin Rata-rata', value: pct(avgMarginPct), sub: 'gross margin', color: 'text-pink-400' },
             ].map((kpi, i) => (
-              <div key={i} className="glass-panel p-4 border-white/5 flex flex-col gap-1">
+              <div key={i} className="glass-panel p-3.5 sm:p-4 border-white/5 flex flex-col gap-1">
                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{kpi.label}</span>
-                <span className={`text-xl font-extrabold ${kpi.color}`}>{kpi.value}</span>
+                <span className={`text-lg sm:text-xl font-extrabold ${kpi.color} break-words`}>{kpi.value}</span>
                 <span className="text-[10px] text-gray-500">{kpi.sub}</span>
               </div>
             ))}
@@ -317,12 +362,14 @@ export const StockInventory: React.FC = () => {
         {/* Table */}
         <div className="glass-panel overflow-hidden border border-white/5">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+            <table className="w-full text-left border-collapse text-sm min-w-[700px]">
               <thead>
                 <tr className="bg-white/5 text-gray-400 text-xs font-semibold uppercase tracking-wider border-b border-white/5">
                   <th className="py-4 px-4">Barcode</th>
                   <th className="py-4 px-4">Nama Barang</th>
                   <th className="py-4 px-4">Kategori</th>
+                  <th className="py-4 px-4 text-cyan-400">Tgl Masuk</th>
+                  <th className="py-4 px-4 text-indigo-400 text-center">Barang Laku</th>
                   {isOwner && <th className="py-4 px-4 text-amber-400">Harga Beli</th>}
                   <th className="py-4 px-4 text-emerald-400">Harga Jual</th>
                   {isOwner && (
@@ -360,6 +407,14 @@ export const StockInventory: React.FC = () => {
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-0.5 text-xs rounded-full font-medium bg-indigo-500/10 text-indigo-400 border border-indigo-500/15">
                           {prod.category}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-xs text-cyan-400/90">
+                        {prod.created_at ? new Date(prod.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '24 Jul 2026'}
+                      </td>
+                      <td className="py-3.5 px-4 text-center">
+                        <span className="px-2.5 py-0.5 text-xs rounded-full font-extrabold bg-indigo-500/15 text-indigo-400 border border-indigo-500/25">
+                          {soldMap[prod.id] || 0} Pcs
                         </span>
                       </td>
                       {isOwner && (

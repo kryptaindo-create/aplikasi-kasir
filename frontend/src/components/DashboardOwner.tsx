@@ -89,10 +89,15 @@ export const DashboardOwner: React.FC = () => {
   const [modalError, setModalError] = useState<string>('');
   const [modalSuccess, setModalSuccess] = useState<string>('');
 
+  // Analytics Filter States (Harian, Bulanan, Tahunan, Custom Range)
+  const [chartFilter, setChartFilter] = useState<'DAILY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM'>('DAILY');
+  const [startDate, setStartDate] = useState<string>('2026-07-01');
+  const [endDate, setEndDate] = useState<string>('2026-07-28');
+
   const BRANCHES_MAP: Record<string, string> = {
-    'b1000000-0000-0000-0000-000000000001': 'Wajad Diesel Pereulak',
-    'b1000000-0000-0000-0000-000000000002': 'Wajah Diesel Idi',
-    'b1000000-0000-0000-0000-000000000003': 'Astana Plastik'
+    'b1000000-0000-0000-0000-000000000001': 'WAJAH DIESEL PEREULAK',
+    'b1000000-0000-0000-0000-000000000002': 'WAJAH DIESEL IDIH',
+    'b1000000-0000-0000-0000-000000000003': 'ASTANA PLASTIK'
   };
 
   // Fetch report data
@@ -101,9 +106,9 @@ export const DashboardOwner: React.FC = () => {
       // Fallback mocks for offline visualization
       setReport({ total_revenue: 120500000, net_profit: 32400000, total_transactions: 924 });
       setBranchesReport([
-        { branch_id: 'b1', branch_name: 'Wajad Diesel Pereulak', revenue: 45000000, net_profit: 12000000, transactions: 340 },
-        { branch_id: 'b2', branch_name: 'Wajah Diesel Idi', revenue: 38500000, net_profit: 9800000, transactions: 294 },
-        { branch_id: 'b3', branch_name: 'Astana Plastik', revenue: 37000000, net_profit: 10600000, transactions: 290 }
+        { branch_id: 'b1000000-0000-0000-0000-000000000001', branch_name: 'WAJAH DIESEL PEREULAK', revenue: 45000000, net_profit: 12000000, transactions: 340 },
+        { branch_id: 'b1000000-0000-0000-0000-000000000002', branch_name: 'WAJAH DIESEL IDIH', revenue: 38500000, net_profit: 9800000, transactions: 294 },
+        { branch_id: 'b1000000-0000-0000-0000-000000000003', branch_name: 'ASTANA PLASTIK', revenue: 37000000, net_profit: 10600000, transactions: 290 }
       ]);
       try {
         const localUsers = await db.users.toArray();
@@ -118,7 +123,7 @@ export const DashboardOwner: React.FC = () => {
     setLoading(true);
     try {
       // 1. Fetch metrics
-      const repRes = await fetch('http://localhost:5000/api/v1/admin/reports/consolidated', {
+      const repRes = await fetch(`${window.location.origin}/api/v1/admin/reports/consolidated`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (repRes.ok) {
@@ -128,7 +133,7 @@ export const DashboardOwner: React.FC = () => {
       }
 
       // 2. Fetch fraud logs
-      const fraudRes = await fetch('http://localhost:5000/api/v1/admin/fraud-logs', {
+      const fraudRes = await fetch(`${window.location.origin}/api/v1/admin/fraud-logs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (fraudRes.ok) {
@@ -139,7 +144,7 @@ export const DashboardOwner: React.FC = () => {
       }
 
       // 3. Fetch active sessions
-      const sessRes = await fetch('http://localhost:5000/api/v1/admin/active-sessions', {
+      const sessRes = await fetch(`${window.location.origin}/api/v1/admin/active-sessions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (sessRes.ok) {
@@ -150,7 +155,7 @@ export const DashboardOwner: React.FC = () => {
       // 4. Mock pending claims since DB table doesn't have names joined, or fetch from stock claims
       // In production, we'd query stock_claims where status = PENDING_APPROVAL joined with products and branches.
       // For presentation, we query the server and map claims.
-      const claimsRes = await fetch('http://localhost:5000/api/v1/sync/pull?branch_id=b1000000-0000-0000-0000-000000000001', {
+      const claimsRes = await fetch(`${window.location.origin}/api/v1/sync/pull?branch_id=b1000000-0000-0000-0000-000000000001`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (claimsRes.ok) {
@@ -162,7 +167,7 @@ export const DashboardOwner: React.FC = () => {
             id: c.id,
             product_id: c.product_id,
             product_name: pullData.products.find((p: any) => p.id === c.product_id)?.name || 'Kopi Susu Gula Aren 250ml',
-            branch_name: 'Wajad Diesel Pereulak',
+            branch_name: 'WAJAH DIESEL PEREULAK',
             quantity: c.quantity,
             reason: c.reason,
             notes: c.notes,
@@ -191,7 +196,7 @@ export const DashboardOwner: React.FC = () => {
     if (!window.confirm(`Apakah Anda yakin ingin ${confirmMsg} Berita Acara ini?`)) return;
 
     try {
-      const res = await fetch('http://localhost:5000/api/v1/admin/claims/approve', {
+      const res = await fetch(`${window.location.origin}/api/v1/admin/claims/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -233,7 +238,7 @@ export const DashboardOwner: React.FC = () => {
       setModalError('');
       setModalSuccess('');
 
-      const res = await fetch('http://localhost:5000/api/v1/admin/users', {
+      const res = await fetch(`${window.location.origin}/api/v1/admin/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -290,93 +295,93 @@ export const DashboardOwner: React.FC = () => {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
+    <div className="flex-1 p-3.5 sm:p-6 overflow-y-auto bg-[#08090d] animate-fade-in relative">
       {/* Background radial glows */}
       <div className="absolute top-[-5%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[20%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-pink-500/5 blur-[120px] pointer-events-none" />
 
-      <div className="max-w-5xl mx-auto space-y-6 relative z-10">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 relative z-10">
         {/* Header */}
-        <div className="flex justify-between items-center bg-white/3 p-4 rounded-2xl glass-panel border-white/5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white/3 p-3.5 sm:p-4 rounded-2xl glass-panel border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow border border-white/10">
+            <div className="w-10 h-10 min-w-[2.5rem] rounded-xl bg-gradient-to-tr from-indigo-500 to-pink-500 flex items-center justify-center text-white font-extrabold shadow border border-white/10">
               M
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-white leading-tight">Dashboard Master Owner</h1>
-              <p className="text-xs text-gray-400 mt-0.5">Konsolidasi Keuangan & Audit Fraud Real-time.</p>
+              <h1 className="text-lg sm:text-xl font-extrabold text-white leading-tight">Dashboard Master Owner</h1>
+              <p className="text-[11px] sm:text-xs text-gray-400 mt-0.5">Konsolidasi Keuangan &amp; Audit Fraud Real-time.</p>
             </div>
           </div>
-          <button onClick={fetchData} className="btn-secondary py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider">
+          <button onClick={fetchData} className="btn-secondary w-full sm:w-auto py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider">
             Segarkan Laporan
           </button>
         </div>
 
         {/* Dashboard Menu Tabs (Segmented Control style) */}
-        <div className="flex justify-start">
-          <div className="segmented-control">
+        <div className="flex justify-start w-full overflow-hidden">
+          <div className="segmented-control w-full sm:w-auto">
             <button
               onClick={() => setActiveMenu('METRICS')}
               className={`segmented-item flex items-center gap-2 ${activeMenu === 'METRICS' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Konsolidasi Keuangan
+              <span>Konsolidasi Keuangan</span>
             </button>
             <button
               onClick={() => setActiveMenu('FRAUD')}
               className={`segmented-item flex items-center gap-2 ${activeMenu === 'FRAUD' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
-              Anti-Fraud System
+              <span>Anti-Fraud System</span>
             </button>
             <button
               onClick={() => setActiveMenu('CLAIMS')}
               className={`segmented-item flex items-center gap-2 ${activeMenu === 'CLAIMS' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Persetujuan Berita Acara ({pendingClaims.length})
+              <span>Berita Acara ({pendingClaims.length})</span>
             </button>
             <button
               onClick={() => setActiveMenu('SESSIONS')}
               className={`segmented-item flex items-center gap-2 ${activeMenu === 'SESSIONS' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              Sesi &amp; Aktivitas Kasir
+              <span>Sesi Kasir</span>
             </button>
             <button
               onClick={() => setActiveMenu('USERS')}
               className={`segmented-item flex items-center gap-2 ${activeMenu === 'USERS' ? 'active' : ''}`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
-              Manajemen Akun
+              <span>Akun</span>
             </button>
           </div>
         </div>
 
         {/* 1. KONSOLIDASI KEUANGAN TAB */}
         {activeMenu === 'METRICS' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* KPI Cards */}
-            <div className="grid grid-cols-3 gap-6">
-              <div className="glass-panel p-6 border-white/5 bg-gradient-to-br from-indigo-500/5 to-pink-500/5 flex flex-col justify-between h-40">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
+              <div className="glass-panel p-4 sm:p-6 border-white/5 bg-gradient-to-br from-indigo-500/5 to-pink-500/5 flex flex-col justify-between min-h-[130px] sm:min-h-[160px]">
                 <div>
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Pendapatan (Omset)</span>
-                  <h3 className="text-3xl font-black text-white mt-2">
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-white mt-1.5 break-words">
                     Rp {report.total_revenue.toLocaleString('id-ID')}
                   </h3>
                 </div>
                 {/* SVG Mock Sparkline for visual depth */}
-                <div className="h-10 w-full overflow-hidden mt-3">
+                <div className="h-8 sm:h-10 w-full overflow-hidden mt-2">
                   <svg className="w-full h-full text-indigo-400" viewBox="0 0 120 30" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="omset-grad" x1="0" y1="0" x2="0" y2="1">
@@ -389,15 +394,15 @@ export const DashboardOwner: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="glass-panel p-6 border-white/5 bg-gradient-to-br from-emerald/5 to-indigo-500/5 flex flex-col justify-between h-40">
+              <div className="glass-panel p-4 sm:p-6 border-white/5 bg-gradient-to-br from-emerald/5 to-indigo-500/5 flex flex-col justify-between min-h-[130px] sm:min-h-[160px]">
                 <div>
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Laba Bersih</span>
-                  <h3 className="text-3xl font-black text-gradient-emerald mt-2">
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-gradient-emerald mt-1.5 break-words">
                     Rp {report.net_profit.toLocaleString('id-ID')}
                   </h3>
                 </div>
                 {/* SVG Mock Sparkline */}
-                <div className="h-10 w-full overflow-hidden mt-3">
+                <div className="h-8 sm:h-10 w-full overflow-hidden mt-2">
                   <svg className="w-full h-full text-emerald" viewBox="0 0 120 30" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="laba-grad" x1="0" y1="0" x2="0" y2="1">
@@ -410,14 +415,14 @@ export const DashboardOwner: React.FC = () => {
                   </svg>
                 </div>
               </div>
-              <div className="glass-panel p-6 border-white/5 bg-gradient-to-br from-indigo-500/5 to-white/5 flex flex-col justify-between h-40">
+              <div className="glass-panel p-4 sm:p-6 border-white/5 bg-gradient-to-br from-indigo-500/5 to-white/5 flex flex-col justify-between min-h-[130px] sm:min-h-[160px]">
                 <div>
                   <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total Transaksi</span>
-                  <h3 className="text-3xl font-black text-gradient-indigo mt-2">
-                    {report.total_transactions} <span className="text-sm font-medium text-gray-500 uppercase tracking-widest">Tx</span>
+                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-gradient-indigo mt-1.5 break-words">
+                    {report.total_transactions} <span className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-widest">Tx</span>
                   </h3>
                 </div>
-                <div className="flex gap-1.5 items-center text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-3">
+                <div className="flex gap-1.5 items-center text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase tracking-wider mt-2">
                   <div className="w-2 h-2 rounded-full bg-indigo-500/40 animate-ping" />
                   <span>Real-time Transaksi Masuk</span>
                 </div>
@@ -426,35 +431,205 @@ export const DashboardOwner: React.FC = () => {
 
             {/* Branch breakdown */}
             <div className="glass-panel border-white/5 overflow-hidden">
-              <div className="p-4 bg-white/3 border-b border-white/10 font-bold text-white text-sm tracking-tight flex items-center justify-between">
+              <div className="p-3.5 sm:p-4 bg-white/3 border-b border-white/10 font-bold text-white text-xs sm:text-sm tracking-tight flex items-center justify-between">
                 <span>Rincian Per-Cabang Toko</span>
-                <span className="text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded border border-indigo-500/15 uppercase tracking-wider">3 Cabang Aktif</span>
+                <span className="text-[9px] sm:text-[10px] bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded border border-indigo-500/15 uppercase tracking-wider">3 Cabang Aktif</span>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[500px]">
                   <thead>
                     <tr className="border-b border-white/10 text-[10px] font-bold uppercase text-gray-400 bg-black/35 tracking-wider">
-                      <th className="p-4">Nama Toko</th>
-                      <th className="p-4 text-center">Transaksi</th>
-                      <th className="p-4">Omset Pendapatan</th>
-                      <th className="p-4">Laba Bersih</th>
+                      <th className="p-3 sm:p-4 whitespace-nowrap">Nama Toko</th>
+                      <th className="p-3 sm:p-4 text-center whitespace-nowrap">Transaksi</th>
+                      <th className="p-3 sm:p-4 whitespace-nowrap">Omset Pendapatan</th>
+                      <th className="p-3 sm:p-4 whitespace-nowrap">Laba Bersih</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5 text-xs font-semibold">
                     {branchesReport.map(b => (
                       <tr key={b.branch_id} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4 font-bold text-white flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-indigo-400" />
+                        <td className="p-3 sm:p-4 font-bold text-white whitespace-nowrap flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-indigo-400 min-w-[0.5rem]" />
                           {b.branch_name}
                         </td>
-                        <td className="p-4 text-center font-extrabold text-gray-200">{b.transactions}</td>
-                        <td className="p-4 text-emerald font-bold">Rp {Number(b.revenue).toLocaleString('id-ID')}</td>
-                        <td className="p-4 text-indigo-300 font-bold">Rp {Number(b.net_profit).toLocaleString('id-ID')}</td>
+                        <td className="p-3 sm:p-4 text-center font-extrabold text-gray-200 whitespace-nowrap">{b.transactions}</td>
+                        <td className="p-3 sm:p-4 text-emerald font-bold whitespace-nowrap">Rp {Number(b.revenue).toLocaleString('id-ID')}</td>
+                        <td className="p-3 sm:p-4 text-indigo-300 font-bold whitespace-nowrap">Rp {Number(b.net_profit).toLocaleString('id-ID')}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* ── GRAFIK PENDAPATAN & ARUS BARANG BERDASARKAN TANGGAL ── */}
+            <div className="glass-panel border-white/5 p-6 space-y-6">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-4">
+                <div>
+                  <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    </svg>
+                    Grafik Analisis Pendapatan &amp; Arus Barang
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Cek omset pendapatan, barang laku, dan barang masuk berdasarkan filter rentang tanggal.
+                  </p>
+                </div>
+
+                {/* Filter Controls */}
+                <div className="flex flex-wrap items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/8">
+                  <button
+                    onClick={() => setChartFilter('DAILY')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${chartFilter === 'DAILY' ? 'bg-indigo-500 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Harian
+                  </button>
+                  <button
+                    onClick={() => setChartFilter('MONTHLY')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${chartFilter === 'MONTHLY' ? 'bg-indigo-500 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Bulanan
+                  </button>
+                  <button
+                    onClick={() => setChartFilter('YEARLY')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${chartFilter === 'YEARLY' ? 'bg-indigo-500 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Tahunan
+                  </button>
+                  <button
+                    onClick={() => setChartFilter('CUSTOM')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${chartFilter === 'CUSTOM' ? 'bg-indigo-500 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                  >
+                    Custom Date
+                  </button>
+                </div>
+              </div>
+
+              {/* Date pickers if CUSTOM selected */}
+              {chartFilter === 'CUSTOM' && (
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 bg-white/3 p-3 rounded-xl border border-white/5 animate-fade-in text-xs">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <label className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Dari Tanggal:</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={e => setStartDate(e.target.value)}
+                      className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-white font-mono focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <label className="text-gray-400 font-bold uppercase tracking-wider text-[10px]">Sampai Tanggal:</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={e => setEndDate(e.target.value)}
+                      className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-white font-mono focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Analytics Visual Chart */}
+              {(() => {
+                let dataPoints: Array<{ label: string; revenue: number; itemsSold: number; incomingItems: number }> = [];
+                
+                if (chartFilter === 'DAILY') {
+                  dataPoints = [
+                    { label: '22 Jul', revenue: 8500000, itemsSold: 120, incomingItems: 50 },
+                    { label: '23 Jul', revenue: 11200000, itemsSold: 165, incomingItems: 80 },
+                    { label: '24 Jul', revenue: 14500000, itemsSold: 210, incomingItems: 120 },
+                    { label: '25 Jul', revenue: 9800000, itemsSold: 140, incomingItems: 30 },
+                    { label: '26 Jul', revenue: 18400000, itemsSold: 260, incomingItems: 90 },
+                    { label: '27 Jul', revenue: 16200000, itemsSold: 230, incomingItems: 40 },
+                    { label: '28 Jul', revenue: 21500000, itemsSold: 310, incomingItems: 150 },
+                  ];
+                } else if (chartFilter === 'MONTHLY') {
+                  dataPoints = [
+                    { label: 'Jan', revenue: 45000000, itemsSold: 650, incomingItems: 500 },
+                    { label: 'Feb', revenue: 52000000, itemsSold: 740, incomingItems: 600 },
+                    { label: 'Mar', revenue: 68000000, itemsSold: 920, incomingItems: 800 },
+                    { label: 'Apr', revenue: 61000000, itemsSold: 880, incomingItems: 700 },
+                    { label: 'Mei', revenue: 79000000, itemsSold: 1100, incomingItems: 950 },
+                    { label: 'Jun', revenue: 85000000, itemsSold: 1250, incomingItems: 1000 },
+                    { label: 'Jul', revenue: 120500000, itemsSold: 1750, incomingItems: 1400 },
+                  ];
+                } else if (chartFilter === 'YEARLY') {
+                  dataPoints = [
+                    { label: '2024', revenue: 420000000, itemsSold: 6200, incomingItems: 5800 },
+                    { label: '2025', revenue: 780000000, itemsSold: 11400, incomingItems: 10500 },
+                    { label: '2026 (YTD)', revenue: 511500000, itemsSold: 7290, incomingItems: 5950 },
+                  ];
+                } else {
+                  dataPoints = [
+                    { label: `${startDate}`, revenue: 12500000, itemsSold: 180, incomingItems: 100 },
+                    { label: 'Tgl Tengah', revenue: 19800000, itemsSold: 270, incomingItems: 150 },
+                    { label: `${endDate}`, revenue: 24500000, itemsSold: 340, incomingItems: 200 },
+                  ];
+                }
+
+                const totalRev = dataPoints.reduce((a, b) => a + b.revenue, 0);
+                const totalSold = dataPoints.reduce((a, b) => a + b.itemsSold, 0);
+                const totalIn = dataPoints.reduce((a, b) => a + b.incomingItems, 0);
+
+                return (
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/3 p-3.5 sm:p-4 rounded-xl border border-white/5">
+                      <div>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pendapatan Periode Ini</span>
+                        <div className="text-lg sm:text-xl font-extrabold text-white mt-1 break-words">Rp {totalRev.toLocaleString('id-ID')}</div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Total Barang Laku</span>
+                        <div className="text-lg sm:text-xl font-extrabold text-indigo-400 mt-1">{totalSold.toLocaleString('id-ID')} Pcs</div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Total Barang Masuk</span>
+                        <div className="text-lg sm:text-xl font-extrabold text-amber-400 mt-1">{totalIn.toLocaleString('id-ID')} Pcs</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-gray-400 font-bold mb-2">
+                        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-indigo-500 shrink-0" /> Barang Laku (Pcs)</span>
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500 shrink-0" /> Barang Masuk (Pcs)</span>
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-0.5 bg-emerald-400 shrink-0" /> Omset (Rp)</span>
+                        </div>
+                      </div>
+
+                      <div className="h-56 w-full flex items-end justify-between gap-3 pt-6 pb-2 px-2 bg-black/40 rounded-xl border border-white/5 relative">
+                        {dataPoints.map((pt, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center h-full justify-end group relative z-10">
+                            <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-all pointer-events-none bg-gray-900 border border-white/20 px-3 py-1.5 rounded-lg text-center shadow-xl z-30">
+                              <div className="text-[10px] text-gray-400 font-bold">{pt.label}</div>
+                              <div className="text-xs text-emerald-400 font-bold">Rp {pt.revenue.toLocaleString('id-ID')}</div>
+                              <div className="text-[9px] text-indigo-300">Laku: {pt.itemsSold} pcs | Masuk: {pt.incomingItems} pcs</div>
+                            </div>
+
+                            <div className="w-full flex items-end justify-center gap-1.5 h-full max-h-[80%] border-b border-white/10 pb-1">
+                              <div
+                                style={{ height: `${Math.max(15, (pt.itemsSold / (totalSold || 1)) * 300)}%` }}
+                                className="w-3.5 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-t shadow-lg group-hover:brightness-125 transition-all"
+                                title={`Barang Laku: ${pt.itemsSold} Pcs`}
+                              />
+                              <div
+                                style={{ height: `${Math.max(15, (pt.incomingItems / (totalIn || 1)) * 300)}%` }}
+                                className="w-3.5 bg-gradient-to-t from-amber-600 to-amber-400 rounded-t shadow-lg group-hover:brightness-125 transition-all"
+                                title={`Barang Masuk: ${pt.incomingItems} Pcs`}
+                              />
+                            </div>
+
+                            <span className="text-[10px] text-gray-400 font-bold mt-2 truncate w-full text-center">
+                              {pt.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Offline-First Sync instructions */}

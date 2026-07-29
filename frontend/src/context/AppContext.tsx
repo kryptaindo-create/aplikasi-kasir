@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { db, type User, type Product, type Inventory, type Sale, type SaleItem, type ShiftLog, type VoidAuditTrail, type DiscountAuditTrail, type StockClaim, type StockTransfer } from '../db';
+import { db, type User, type Product, type Sale, type SaleItem, type ShiftLog, type VoidAuditTrail, type DiscountAuditTrail, type StockClaim, type StockTransfer } from '../db';
 
 // --- TYPES ---
 export interface CartItem {
@@ -50,7 +50,18 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const API_BASE = 'http://localhost:5000/api/v1';
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
+const API_BASE = typeof window !== 'undefined' ? `${window.location.origin}/api/v1` : 'http://localhost:5000/api/v1';
 
 // Get or create unique device ID
 const getDeviceIdentifier = () => {
@@ -138,32 +149,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [updatePendingMutationsCount]);
 
+  // Sync Pull
   const syncPull = useCallback(async (authToken: string, branchId: string) => {
     try {
-      const lastSync = localStorage.getItem('pos_last_sync') || '';
-      const url = `${API_BASE}/sync/pull?branch_id=${branchId}` + (lastSync ? `&last_sync_time=${encodeURIComponent(lastSync)}` : '');
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+      const lastSync = localStorage.getItem('pos_last_sync') || '1970-01-01T00:00:00.000Z';
+      const response = await fetch(`${API_BASE}/sync/pull?branch_id=${branchId}&last_sync=${lastSync}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
       });
 
-      if (!response.ok) throw new Error('Pull sync failed');
+      if (!response.ok) return;
 
       const data = await response.json();
 
-      // Update local Products
       if (data.products && data.products.length > 0) {
         await db.products.bulkPut(data.products.map((p: any) => ({
           ...p,
           selling_price: Number(p.selling_price),
           cost_price: Number(p.cost_price),
-          max_discount: Number(p.max_discount)
+          max_discount: Number(p.max_discount),
+          synced: 1
         })));
       }
 
-      // Update local Inventories (Isolated per branch stock)
       if (data.inventories && data.inventories.length > 0) {
         await db.inventories.bulkPut(data.inventories.map((i: any) => ({
           ...i,
@@ -171,15 +178,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })));
       }
 
-      // Update local Users cache
       if (data.users && data.users.length > 0) {
         await db.users.bulkPut(data.users.map((u: any) => ({
           ...u,
-          is_active: u.is_active ? 1 : 0
+          synced: 1
         })));
       }
 
-      // Update stock claims status
+      if (data.shiftLogs && data.shiftLogs.length > 0) {
+        await db.shift_logs.bulkPut(data.shiftLogs.map((s: any) => ({
+          ...s,
+          opening_cash: Number(s.opening_cash),
+          expected_cash: s.expected_cash ? Number(s.expected_cash) : null,
+          actual_cash: s.actual_cash ? Number(s.actual_cash) : null,
+          variance: s.variance ? Number(s.variance) : null,
+          synced: 1
+        })));
+      }
+
       if (data.stockClaims && data.stockClaims.length > 0) {
         await db.stock_claims.bulkPut(data.stockClaims.map((c: any) => ({
           ...c,
@@ -188,7 +204,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })));
       }
 
-      // Save sync timestamp
       localStorage.setItem('pos_last_sync', data.serverTime);
       setLastSyncTime(data.serverTime);
     } catch (error) {
@@ -208,7 +223,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Queue local mutations
   const addMutation = useCallback(async (tableName: string, action: 'INSERT' | 'UPDATE', payload: any) => {
-    const mutationId = crypto.randomUUID();
+    const mutationId = generateUUID();
     await db.mutation_queue.add({
       id: mutationId,
       table_name: tableName,
@@ -385,12 +400,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // --- 3. SHIFT FLOW & DRAWER RECONCILIATION (ANTI-FRAUD) ---
 
   const openShift = async (openingCash: number) => {
-    if (!user || !user.branch_id) return;
+    if (!user) return;
+    const branchId = user.branch_id || 'b1000000-0000-0000-0000-000000000001';
     
     const newShift: ShiftLog = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       cashier_id: user.id,
-      branch_id: user.branch_id,
+      branch_id: branchId,
       opening_time: new Date().toISOString(),
       closing_time: null,
       opening_cash: openingCash,
@@ -490,7 +506,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Record local void log
     const voidLog: VoidAuditTrail = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       transaction_id: 'CART-' + new Date().toISOString(), // Draft state ID
       item_id: productId,
       cashier_id: user?.id || '',
@@ -510,8 +526,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const checkout = async (paymentMethod: 'CASH' | 'QRIS' | 'DEBIT' | 'RECEIVABLE', cashReceived: number) => {
-    if (!user || !user.branch_id || !activeShift) throw new Error('Kasir belum membuka shift atau data pengguna tidak valid.');
+    if (!user || !activeShift) throw new Error('Kasir belum membuka shift atau data pengguna tidak valid.');
     if (cart.length === 0) throw new Error('Keranjang kosong.');
+
+    const effectiveBranchId = user.branch_id || activeShift.branch_id || 'b1000000-0000-0000-0000-000000000001';
 
     const subtotal = cart.reduce((acc, item) => acc + (item.product.selling_price * item.quantity), 0);
     const total_discount = cart.reduce((acc, item) => {
@@ -521,11 +539,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const grand_total = subtotal - total_discount;
     const cash_change = paymentMethod === 'CASH' ? Math.max(0, cashReceived - grand_total) : 0;
 
-    const txId = `TX-${user.branch_id.substring(0, 4)}-${deviceId}-${new Date().toISOString().replace(/[-:T.Z]/g, '').substring(0, 14)}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const txId = `TX-${effectiveBranchId.substring(0, 4)}-${deviceId}-${new Date().toISOString().replace(/[-:T.Z]/g, '').substring(0, 14)}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const saleRecord: Sale = {
       id: txId,
-      branch_id: user.branch_id,
+      branch_id: effectiveBranchId,
       cashier_id: user.id,
       member_id: null,
       subtotal,
@@ -539,7 +557,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     const saleItemsRecords: SaleItem[] = cart.map(item => ({
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       sale_id: txId,
       product_id: item.product.id,
       quantity: item.quantity,
@@ -554,11 +572,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       await db.sale_items.add(item);
 
       // Decrement stock locally in branch inventory cache
-      const inv = await db.inventories.get([item.product_id, user.branch_id]);
+      const inv = await db.inventories.get([item.product_id, effectiveBranchId]);
       if (inv) {
         await db.inventories.put({
           product_id: item.product_id,
-          branch_id: user.branch_id,
+          branch_id: effectiveBranchId,
           stock: Math.max(0, inv.stock - item.quantity)
         });
       }
@@ -577,7 +595,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Find if override occurred. (In application, cashiers must authorize prior to this).
         // For simplicity, we record it in audit logs
         const discountLog: DiscountAuditTrail = {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           transaction_id: txId,
           cashier_id: user.id,
           discount_percentage: item.discount_percent,
@@ -602,7 +620,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!user || !user.branch_id) return;
 
     const claim: StockClaim = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       product_id: productId,
       branch_id: user.branch_id,
       quantity,
@@ -633,7 +651,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!user || !user.branch_id) return;
 
     const transfer: StockTransfer = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       product_id: productId,
       from_branch_id: user.branch_id,
       to_branch_id: toBranchId,

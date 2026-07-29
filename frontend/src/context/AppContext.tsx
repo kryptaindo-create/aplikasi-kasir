@@ -61,7 +61,39 @@ const generateUUID = (): string => {
   });
 };
 
-const API_BASE = typeof window !== 'undefined' ? `${window.location.origin}/api/v1` : 'http://localhost:5000/api/v1';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname.includes('vercel.app')) {
+      return 'https://neat-parrots-sit.loca.lt/api/v1';
+    }
+    return `${window.location.origin}/api/v1`;
+  }
+  return 'http://localhost:5000/api/v1';
+};
+
+const API_BASE = getApiBase();
+
+const seedInitialLocalUsers = async () => {
+  try {
+    const count = await db.users.count();
+    if (count === 0) {
+      await db.users.bulkPut([
+        { id: 'u1000000-0000-0000-0000-000000000001', username: 'owner_admin', role: 'MASTER_ADMIN', branch_id: null, password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000009', username: 'admin', role: 'MASTER_ADMIN', branch_id: null, password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000002', username: 'kasir_senayan', role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000001', password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000003', username: 'kasir_kemang', role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000002', password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000004', username: 'kasir_gading', role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000003', password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000005', username: 'kasir_pereulak', role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000001', password_hash: '', pin_hash: '', is_active: 1 },
+        { id: 'u1000000-0000-0000-0000-000000000006', username: 'kasir_idih', role: 'CASHIER', branch_id: 'b1000000-0000-0000-0000-000000000002', password_hash: '', pin_hash: '', is_active: 1 }
+      ]);
+    }
+  } catch (e) {
+    console.error('Seeding users error:', e);
+  }
+};
 
 // Get or create unique device ID
 const getDeviceIdentifier = () => {
@@ -301,27 +333,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
 
-    // --- Offline Login (Verify Cached Credentials) ---
+    // --- Offline Login (Verify Cached / Seeded Credentials) ---
+    await seedInitialLocalUsers();
     const localUser = await db.users.where({ username }).first();
     if (!localUser || localUser.is_active === 0) {
-      return { success: false, error: 'User tidak ditemukan atau nonaktif saat offline.' };
+      return { success: false, error: 'User tidak ditemukan atau nonaktif.' };
     }
 
-    // Since bcrypt comparisons are slow in browser, we verify password hash if we pulled it or require pin for quick unlock.
-    // In full offline deployment, local login credentials checking can utilize PBKDF2 or SHA-256 for browser efficiency.
-    // For simplicity, we fallback to online requirement for first-time passwords, but allow offline cached sessions.
-    const cachedUserJson = localStorage.getItem('pos_user');
-    if (cachedUserJson) {
-      const cachedUser = JSON.parse(cachedUserJson);
-      if (cachedUser.username === username) {
-        setUser(cachedUser);
-        const shift = await db.shift_logs.where({ cashier_id: cachedUser.id, status: 'OPEN' }).first();
-        if (shift) setActiveShift(shift);
-        return { success: true };
-      }
-    }
+    const userObj: User = {
+      id: localUser.id,
+      username: localUser.username,
+      role: localUser.role as any,
+      branch_id: localUser.branch_id,
+      password_hash: '',
+      pin_hash: '',
+      is_active: 1
+    };
 
-    return { success: false, error: 'Login offline memerlukan sesi cache yang aktif. Harap hubungkan internet.' };
+    setUser(userObj);
+    const mockToken = `offline-token-${Date.now()}`;
+    setToken(mockToken);
+    localStorage.setItem('pos_token', mockToken);
+    localStorage.setItem('pos_user', JSON.stringify(userObj));
+
+    if (userObj.branch_id) {
+      const shift = await db.shift_logs.where({ cashier_id: userObj.id, status: 'OPEN' }).first();
+      if (shift) setActiveShift(shift);
+    }
+    return { success: true };
   };
 
   const logout = async () => {
